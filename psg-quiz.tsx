@@ -13,6 +13,7 @@ import Script from "next/script"
 import Head from "next/head"
 import styles from '@/styles/animations.module.css'
 import PartnersFooter from "@/components/partners-footer"
+import { trackEvent as trackPixelEvent } from "@/lib/utils"
 
 // Adicionar animação keyframes para a barra de progresso
 const progressBarStyles = `
@@ -454,26 +455,6 @@ const PixelScripts = () => (
       strategy="beforeInteractive"
     />
 
-    {/* Meta Pixel */}
-    <Script
-      id="meta-pixel"
-      strategy="beforeInteractive"
-      dangerouslySetInnerHTML={{
-        __html: `
-          !function(f,b,e,v,n,t,s)
-          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-          n.queue=[];t=b.createElement(e);t.async=!0;
-          t.src=v;s=b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t,s)}(window, document,'script',
-          'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '10005843282818404');
-          fbq('track', 'PageView');
-        `
-      }}
-    />
-
     {/* TikTok Pixel */}
     <Script
       id="tiktok-pixel"
@@ -542,32 +523,13 @@ const usePixelLoader = () => {
   return isPixelsReady;
 };
 
-// Função simplificada para disparar eventos
-const trackEvent = (eventName: string) => {
-  try {
-    if (window.fbq) {
-      window.fbq('track', eventName);
-    }
-    if (window.ttq) {
-      window.ttq.track(eventName);
-    }
-  } catch (error) {
-    console.error('Error tracking event:', error);
-  }
-};
-
-// Rastrear visualização da VSL apenas uma vez
+// Rastrear visualização da VSL apenas uma vez globalmente
 const useTrackVSLView = () => {
-  const [hasTracked, setHasTracked] = useState(false);
-
   useEffect(() => {
-    if (!hasTracked) {
-      setTimeout(() => {
-        trackEvent('VSL_View');
-        setHasTracked(true);
-      }, 1000);
-    }
-  }, [hasTracked]);
+    setTimeout(() => {
+      trackPixelEvent('VSL_View', undefined, false); // false = não permite duplicatas
+    }, 1000);
+  }, []);
 };
 
 // Hook personalizado para gerenciar elementos escondidos (não é mais necessário)
@@ -916,7 +878,7 @@ export default function PSGQuiz() {
   // Modificar a função de início do quiz com loading
   const handleStartQuiz = () => {
     setIsLoading(true)
-    trackEvent('Quiz_Start');
+    trackPixelEvent('Quiz_Start');
     
     // Simular um pequeno delay para melhor UX
     setTimeout(() => {
@@ -928,7 +890,7 @@ export default function PSGQuiz() {
   // Função para lidar com o clique no botão de compra
   const handleBuyNowClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    trackEvent('Going_to_Store');
+    trackPixelEvent('Going_to_Store');
     const newWindow = window.open("https://store.promoseleccion.shop/", "_blank");
     if (newWindow) newWindow.opener = null;
   }
@@ -993,9 +955,9 @@ export default function PSGQuiz() {
     // Sempre mostrar a notificação, independente da resposta estar correta
     setShowNotification(true)
     if (isCorrect) {
-      trackEvent(`Quiz_Correct_Answer_${questionNumber}`)
+      trackPixelEvent(`Quiz_Correct_Answer_${questionNumber}`)
     } else {
-      trackEvent(`Quiz_Wrong_Answer_${questionNumber}`)
+      trackPixelEvent(`Quiz_Wrong_Answer_${questionNumber}`)
     }
     playNotificationSound()
 
@@ -1006,7 +968,7 @@ export default function PSGQuiz() {
         setSelectedAnswer("")
       } else {
         setQuizCompleted(true)
-        trackEvent('Quiz_Completed')
+        trackPixelEvent('Quiz_Completed')
       }
       setIsSubmitting(false)
     }, 600)
@@ -1022,14 +984,14 @@ export default function PSGQuiz() {
         setSelectedAnswer("")
       } else {
         setQuizCompleted(true)
-        trackEvent('Quiz_Completed');
+        trackPixelEvent('Quiz_Completed');
       }
       setIsLoading(false)
     }, 400)
   }
 
   const handleRestart = () => {
-    trackEvent('Quiz_Restart');
+    trackPixelEvent('Quiz_Restart');
     setGameStarted(false);
     setCurrentQuestion(0);
     setSelectedAnswer("");
