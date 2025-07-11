@@ -1,0 +1,53 @@
+.fall {
+  animation: fall 3s linear forwards;
+}
+
+.heartBurst {
+  animation: heartBurst 0.7s ease-out;
+}
+
+.heartPop {
+  animation: heartPop 0.4s ease-out;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(-50px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes heartBurst {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes heartPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  45% {
+    transform: scale(1.25);
+    opacity: 0.9;
+  }
+  80% {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+} 
