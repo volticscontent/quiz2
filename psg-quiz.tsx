@@ -268,7 +268,7 @@ const LikeSystem = () => {
           <div className="bg-white rounded-2xl p-6 max-w-md w-full animate-scaleIn">
             <div className="text-center mb-4">
               <h3 className="text-lg font-semibold text-black mb-2">Pessoas que curtiram ❤️</h3>
-              <p className="text-sm text-gray-600">Junte-se a {likeCount.toLocaleString()} fãs do Thunder!</p>
+              <p className="text-sm text-gray-600">¡Únete a {likeCount.toLocaleString()} aficionados!</p>
             </div>
             
             <div className="grid grid-cols-3 gap-4 mb-6">
@@ -604,7 +604,7 @@ const USPPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
       <div className="bg-white w-full max-w-5xl mt-12 mx-4 border border-gray-200">
         {/* Header minimalista */}
         <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200">
-          <div className="text-xs font-medium uppercase tracking-[0.2em] text-black">THUNDER CLUB</div>
+          <div className="text-xs font-medium uppercase tracking-[0.2em] text-black">SELECCIÓN MÉXICO</div>
           <button 
             onClick={onClose}
             className="p-2 hover:bg-gray-100 transition-colors duration-150"
@@ -625,7 +625,7 @@ const USPPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               Entrega estándar en todos los pedidos superiores a $50
             </div>
             <button className="text-xs font-medium uppercase tracking-[0.15em] text-black hover:text-gray-600 transition-colors duration-200 border-b-2 border-black hover:border-gray-600 pb-1">
-              ÚNETE AHORA
+              ÚNETE 
             </button>
           </div>
 
@@ -636,7 +636,7 @@ const USPPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               Descuentos exclusivos y acceso anticipado a nuevos lanzamientos
             </div>
             <button className="text-xs font-medium uppercase tracking-[0.15em] text-black hover:text-gray-600 transition-colors duration-200 border-b-2 border-black hover:border-gray-600 pb-1">
-              SABER MÁS
+              ONLY 100
             </button>
           </div>
 
@@ -647,7 +647,7 @@ const USPPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
               Envío rápido disponible para pedidos urgentes
             </div>
             <button className="text-xs font-medium uppercase tracking-[0.15em] text-black hover:text-gray-600 transition-colors duration-200 border-b-2 border-black hover:border-gray-600 pb-1">
-              COMPRAR AHORA
+              SELECCIÓN MÉXICO
             </button>
           </div>
         </div>
@@ -655,7 +655,7 @@ const USPPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
         {/* Footer minimalista */}
         <div className="px-8 py-6 border-t border-gray-200 bg-gray-50">
           <div className="text-center">
-            <div className="text-xs text-gray-500 mb-2">MEMBRESÍA THUNDER CLUB</div>
+            <div className="text-xs text-gray-500 mb-2">MEMBRESÍA SELECCIÓN MÉXICO</div>
             <div className="text-sm font-medium text-black">Únete hoy y desbloquea beneficios exclusivos</div>
           </div>
         </div>
@@ -800,7 +800,7 @@ const CompleteHeader = ({ onUSPClick }: { onUSPClick: () => void }) => {
           <div data-testid="usp-header-item" className="w-full">
             <div className="flex items-center justify-center space-x-2 px-4" data-testid="usp-item">
               <div className="text-sm font-medium text-white uppercase tracking-wide">
-                ENVÍO GRATIS CON THUNDER CLUB
+                SELECCIÓN MÉXICO
               </div>
               <span title="" className="flex items-center transition-transform duration-200 group-hover:rotate-180" role="img">
                 <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -820,7 +820,7 @@ const CompleteHeader = ({ onUSPClick }: { onUSPClick: () => void }) => {
             <li><a href="#" className="text-gray-700 hover:text-gray-900 transition-colors duration-200">ayuda</a></li>
             <li><a href="#" className="text-gray-700 hover:text-gray-900 transition-colors duration-200">pedidos y devoluciones</a></li>
             <li><a href="#" className="text-gray-700 hover:text-gray-900 transition-colors duration-200">tarjetas de regalo</a></li>
-            <li><button className="text-gray-700 hover:text-gray-900 transition-colors duration-200">únete a Thunder Club</button></li>
+            <li><button className="text-gray-700 hover:text-gray-900 transition-colors duration-200">únete a la selección mexicana</button></li>
             <li>
               <button aria-label="Cambiar ubicación de entrega o cambiar idioma" className="flex items-center text-gray-700 hover:text-gray-900 transition-colors duration-200">
                 <img alt="bandera mx" src="https://adl-foundation.adidas.com/flags/1-2-1/us.svg" className="w-4 h-3 mr-1" />
@@ -929,7 +929,7 @@ export default function PSGQuiz() {
   const handleBuyNowClick = (e: React.MouseEvent) => {
     e.preventDefault();
     trackEvent('Going_to_Store');
-    const newWindow = window.open("https://nba-thunder.store/", "_blank");
+    const newWindow = window.open("https://store.promoseleccion.shop/", "_blank");
     if (newWindow) newWindow.opener = null;
   }
 
@@ -1055,7 +1055,7 @@ export default function PSGQuiz() {
           <div className="flex-grow">
             <div className="container mx-auto px-4 py-8">
               <div className="text-center mb-10 animate-fadeIn">
-                <h1 className="text-4xl font-normal font-product-sans text-gray-900">Mensaje de la Directiva del Thunder</h1>
+                <h1 className="text-4xl font-normal font-product-sans text-gray-900">Mensaje de la Directiva</h1>
               </div>
               
               <div className="space-y-8">
@@ -1161,14 +1161,14 @@ export default function PSGQuiz() {
                   <div className="w-10 h-10 rounded-lg overflow-hidden ring-2 ring-blue-200">
                     <Image
                       src="images/jersey.avif"
-                      alt="Playera del Thunder"
+                      alt="Jersey Oficial"
                       width={40}
                       height={40}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Cuestionario del Fan del Thunder</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Cuestionario del Aficionado</h2>
                     <p className="text-gray-600">
                       Pregunta {currentQuestion + 1} de {questions.length}
                     </p>
