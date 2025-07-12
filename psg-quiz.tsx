@@ -381,7 +381,7 @@ const VideoPlayer = React.memo(({ isReady }: { isReady: boolean }) => {
         playsInline
         controls={false}
         preload="auto"
-        src="https://pub-715e1058d62e45dca1d7229ecb1e7480.r2.dev/original.mp4"
+        src="videos/vsl.mp4"
       />
       {showMuteButton && (
         <button
