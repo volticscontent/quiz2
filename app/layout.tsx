@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: 'Chelsea Promotional Selection',
   description: 'Created with v0',
   generator: 'v0.dev',
+  icons: {
+    icon: '/logo.webp',          
+  },
 }
 
 export default function RootLayout({
