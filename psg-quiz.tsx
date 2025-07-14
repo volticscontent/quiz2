@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef, useMemo } from "react"
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -13,7 +13,7 @@ import Script from "next/script"
 import Head from "next/head"
 import styles from '@/styles/animations.module.css'
 import PartnersFooter from "@/components/partners-footer"
-import { trackEvent as trackPixelEvent } from "@/lib/utils"
+import { trackEvent as trackPixelEvent, trackQuizStep } from "@/lib/utils"
 
 // Adicionar animação keyframes para a barra de progresso
 const progressBarStyles = `
@@ -50,31 +50,31 @@ interface Question {
 const questions: Question[] = [
   {
     id: 1,
-    question: "¿A qué equipo derrotó México en la final para ganar la Copa Oro 2025 de Concacaf?",
-    options: ["Estados Unidos", "Canadá", "Panamá", "Costa Rica"],
+    question: "Who scored Chelsea's first goal in the final against PSG?",
+    options: ["Sterling", "Enzo Fernández", "Cole Palmer", "Reece James"],
     correct: 2,
-    explanation: "¡Una final tensa... pero al final la copa se quedó en casa!",
+    explanation: "Cole Palmer scored Chelsea's first goal in the final against PSG!",
   },
   {
     id: 2,
-    question: "¿Qué jugador mexicano es famoso por su peculiar estilo de penal donde hace una pausa antes de tirar?",
-    options: ["Rafa Márquez", "Chicharito", "Cuauhtémoc Blanco", "Guardado"],
-    correct: 2,
-    explanation: "¡El famoso 'estilo Blanco' en los penales. ¡Inconfundible!",
+    question: "How many Champions League titles does Chelsea have?",
+    options: ["1", "2", "3", "None"],
+    correct: 1,
+    explanation: "Chelsea has won 2 Champions League titles in their history!",
   },
   {
     id: 3,
-    question: "¿Cuántos títulos de Copa Oro ha ganado México (hasta 2025)?",
-    options: ["6", "8", "9", "12"],
-    correct: 3,
-    explanation: "¡El Tri es el máximo campeón en la historia de la Copa Oro!",
+    question: "What is Chelsea's traditional shirt color?",
+    options: ["Blue", "Red", "White", "Green"],
+    correct: 0,
+    explanation: "Chelsea's traditional shirt color is Blue - the famous Chelsea Blue!",
   },
   {
     id: 4,
-    question: "¿Qué legendario delantero anotó un gol de chilena contra Italia en el Mundial 2002?",
-    options: ["Chicharito", "Jared Borgetti", "Carlos Vela", "Oribe Peralta"],
+    question: "What's the name of Chelsea's home stadium?",
+    options: ["Old Trafford", "Stamford Bridge", "Wembley", "Anfield"],
     correct: 1,
-    explanation: "Uno de los goles más épicos en la historia de la Selección — Borgetti eterno.",
+    explanation: "Stamford Bridge is Chelsea's historic home stadium since 1905!",
   },
 ]
 
@@ -89,14 +89,14 @@ const SuccessNotification = ({ show, onClose }: { show: boolean; onClose: () => 
       setIsVisible(true)
       setProgress(100)
       
-      // Atualizar progresso a cada 100ms para uma animação mais suave
+      // Update progress every 100ms for smoother animation
       const progressInterval = setInterval(() => {
         setProgress(prev => {
           if (prev <= 0) {
             clearInterval(progressInterval)
             return 0
           }
-          return prev - 2 // Diminuir 2% a cada 100ms = 5 segundos total
+          return prev - 2 // Decrease 2% every 100ms = 5 seconds total
         })
       }, 100)
       
@@ -134,13 +134,13 @@ const SuccessNotification = ({ show, onClose }: { show: boolean; onClose: () => 
           <DollarSign className="h-8 w-8 text-green-500 animate-bounce" />
         </div>
         <div>
-          <p className="font-bold text-lg">¡Excelente! 🎉</p>
-          <p className="text-sm opacity-90">¡Sigue así! Tu descuento del 70% está asegurado</p>
+          <p className="font-bold text-lg">Congratulations! 🎉</p>
+          <p className="text-sm opacity-90">You earned £25 discount!</p>
         </div>
         <button 
           onClick={onClose}
           className="ml-2 text-white hover:text-gray-200 transition-colors duration-200"
-          aria-label="Cerrar notificación"
+          aria-label="Close notification"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -155,7 +155,7 @@ const SuccessNotification = ({ show, onClose }: { show: boolean; onClose: () => 
   )
 }
 
-// Componente de corações caindo
+// Falling hearts component
 const FallingHeart = ({ delay }: { delay: number }) => (
   <div 
     className={`absolute text-red-500 text-2xl pointer-events-none ${styles.fall}`}
@@ -169,14 +169,14 @@ const FallingHeart = ({ delay }: { delay: number }) => (
   </div>
 )
 
-// Componente do ícone da águia do México
-const MexicoEagleIcon = () => (
+// Chelsea lion icon component
+const ChelseaLionIcon = () => (
   <svg
     viewBox="0 0 24 24"
     className="w-8 h-8"
     fill="currentColor"
   >
-    <path d="M12 3c-.53 0-1.04.21-1.41.58L7.7 6.47c-.34.34-.53.8-.53 1.28v6.5c0 .48.19.94.53 1.28l2.89 2.89c.37.37.88.58 1.41.58s1.04-.21 1.41-.58l2.89-2.89c.34-.34.53-.8.53-1.28v-6.5c0-.48-.19-.94-.53-1.28l-2.89-2.89C13.04 3.21 12.53 3 12 3zm0 2.41L14.59 8H9.41L12 5.41zM8 9h8v5H8V9zm1.41 6h5.18L12 17.59 9.41 15z" />
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
   </svg>
 );
 
@@ -186,14 +186,14 @@ const LikeSystem = () => {
   const [showPeople, setShowPeople] = useState(false)
   const [likeCount, setLikeCount] = useState(1247)
 
-  // Fotos de pessoas que curtiram
+  // Photos of people who liked
   const peopleWhoLiked = [
-    { id: 1, name: "Maria", avatar: "https://images.unsplash.com/photo-1494790108755-2616b332c5e2?w=60&h=60&fit=crop&crop=face" },
-    { id: 2, name: "João", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" },
-    { id: 3, name: "Ana", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face" },
-    { id: 4, name: "Pedro", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face" },
+    { id: 1, name: "Mary", avatar: "https://images.unsplash.com/photo-1494790108755-2616b332c5e2?w=60&h=60&fit=crop&crop=face" },
+    { id: 2, name: "John", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" },
+    { id: 3, name: "Anna", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face" },
+    { id: 4, name: "Peter", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face" },
     { id: 5, name: "Carla", avatar: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=60&h=60&fit=crop&crop=face" },
-    { id: 6, name: "Lucas", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face" }
+    { id: 6, name: "Luke", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face" }
   ]
 
   const handleLike = () => {
@@ -254,7 +254,7 @@ const LikeSystem = () => {
         </button>
       </div>
 
-      {/* Chuva de corações */}
+              {/* Heart rain */}
       {showHearts && (
         <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
           {Array.from({ length: 20 }).map((_, i) => (
@@ -425,36 +425,9 @@ const VideoPlayer = React.memo(({ isReady }: { isReady: boolean }) => {
 
 VideoPlayer.displayName = 'VideoPlayer';
 
-// Componente de Layout para os scripts simplificado
+// Componente de Layout para os scripts simplificado - apenas TikTok (Facebook já está no layout global)
 const PixelScripts = () => (
   <>
-    {/* UTMify Pixel */}
-    <Script
-      id="utmify-pixel"
-      strategy="beforeInteractive"
-      dangerouslySetInnerHTML={{
-        __html: `
-          window.pixelId = "685891b70625ccf1fd3a54bc";
-          var a = document.createElement("script");
-          a.setAttribute("async", "");
-          a.setAttribute("defer", "");
-          a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-          document.head.appendChild(a);
-        `
-      }}
-    />
-
-    {/* UTMify UTM Tracking */}
-    <Script
-      id="utmify-tracking"
-      src="https://cdn.utmify.com.br/scripts/utms/latest.js"
-      data-utmify-prevent-xcod-sck=""
-      data-utmify-prevent-subids=""
-      async
-      defer
-      strategy="beforeInteractive"
-    />
-
     {/* TikTok Pixel */}
     <Script
       id="tiktok-pixel"
@@ -464,7 +437,7 @@ const PixelScripts = () => (
           !function (w, d, t) {
             w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
 
-            ttq.load('CQI0UF3C77UBN1SEFPV0');
+            ttq.load('D1QOBFJC77U41SK2P3PG');
             ttq.page();
           }(window, document, 'ttq');
         `
@@ -473,7 +446,7 @@ const PixelScripts = () => (
   </>
 );
 
-// Hook para controlar o carregamento dos pixels com verificações do VTurb
+// Hook para controlar o carregamento dos pixels - simplificado
 const usePixelLoader = () => {
   const [isPixelsReady, setPixelsReady] = useState(false);
   const pixelsInitialized = useRef(false);
@@ -484,20 +457,14 @@ const usePixelLoader = () => {
       return;
     }
 
-    // Verifica se o VTurb está carregado
-    const checkVturb = () => {
-      const vturbElement = document.querySelector('iframe[src*="converteai"]');
-      return vturbElement !== null;
-    };
-
-    // Verifica se os pixels estão carregados
+    // Verifica se os pixels estão carregados (Facebook no layout global)
     const checkPixels = () => {
       return window.fbq && window.ttq;
     };
 
-    // Função que verifica tudo
+    // Função que verifica os pixels
     const checkAll = () => {
-      if (checkVturb() && checkPixels()) {
+      if (checkPixels()) {
         setPixelsReady(true);
         pixelsInitialized.current = true;
         clearInterval(checkInterval);
@@ -507,12 +474,12 @@ const usePixelLoader = () => {
     // Inicia verificação periódica
     const checkInterval = setInterval(checkAll, 500);
 
-    // Timeout de segurança após 10 segundos
+    // Timeout de segurança após 5 segundos
     const timeoutId = setTimeout(() => {
       setPixelsReady(true);
       pixelsInitialized.current = true;
       clearInterval(checkInterval);
-    }, 10000);
+    }, 5000);
 
     return () => {
       clearInterval(checkInterval);
@@ -527,7 +494,7 @@ const usePixelLoader = () => {
 const useTrackVSLView = () => {
   useEffect(() => {
     setTimeout(() => {
-      trackPixelEvent('VSL_View', undefined, false); // false = não permite duplicatas
+      trackQuizStep('vsl_view'); // Rastrear visualização do vídeo
     }, 1000);
   }, []);
 };
@@ -538,23 +505,67 @@ function useDelayedElements() {
   return;
 }
 
-// Modificar o hook de áudio para ser mais simples e direto
 const useAudioSystem = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const playSound = () => {
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio("https://cdn.shopify.com/s/files/1/0946/2290/8699/files/notifica_o-venda.mp3?v=1749150271");
+  useEffect(() => {
+    const initializeAudio = () => {
+      try {
+        if (!audioRef.current) {
+          const audio = new Audio("https://cdn.shopify.com/s/files/1/0946/2290/8699/files/notifica_o-venda.mp3?v=1749150271");
+          audio.preload = "auto";
+          audio.volume = 1;
+          audioRef.current = audio;
+
+          // Inicializa o contexto de áudio para dispositivos móveis
+          const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+          if (AudioContext) {
+            const audioContext = new AudioContext();
+            if (audioContext.state === "suspended") {
+              audioContext.resume();
+            }
+          }
+          setIsInitialized(true);
+        }
+      } catch (error) {
+        console.error('Error initializing audio:', error);
       }
-      audioRef.current.currentTime = 0;
-      audioRef.current.play();
+    };
+
+    // Inicializa na primeira interação
+    const handleFirstInteraction = () => {
+      initializeAudio();
+      document.removeEventListener("touchstart", handleFirstInteraction);
+      document.removeEventListener("click", handleFirstInteraction);
+      document.removeEventListener("keydown", handleFirstInteraction);
+    };
+
+    document.addEventListener("touchstart", handleFirstInteraction, { passive: true });
+    document.addEventListener("click", handleFirstInteraction);
+    document.addEventListener("keydown", handleFirstInteraction);
+
+    return () => {
+      document.removeEventListener("touchstart", handleFirstInteraction);
+      document.removeEventListener("click", handleFirstInteraction);
+      document.removeEventListener("keydown", handleFirstInteraction);
+    };
+  }, []);
+
+  const playSound = useCallback(() => {
+    try {
+      if (audioRef.current && isInitialized) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(error => {
+          console.error('Error playing sound:', error);
+        });
+      }
     } catch (error) {
       console.error('Error playing sound:', error);
     }
-  };
+  }, [isInitialized]);
 
-  return playSound;
+  return { playSound, isInitialized };
 };
 
 // Componente do painel USP - versão minimalista Adidas
@@ -563,14 +574,14 @@ const USPPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black bg-opacity-20 flex items-start justify-center">
-      <div className="bg-white w-full max-w-5xl mt-12 mx-4 border border-gray-200">
-        {/* Header minimalista */}
-        <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200">
-          <div className="text-xs font-medium uppercase tracking-[0.2em] text-black">SELECCIÓN MÉXICO</div>
+      <div className="bg-white w-full max-w-4xl mt-12 mx-4">
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 py-4">
+          <div className="text-xs font-medium uppercase tracking-[0.25em] text-black">Chelsea FC</div>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 transition-colors duration-150"
-            aria-label="Cerrar"
+            className="p-2 hover:bg-gray-50 transition-colors duration-150"
+            aria-label="Close"
           >
             <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
@@ -578,48 +589,45 @@ const USPPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
           </button>
         </div>
 
-        {/* Conteúdo minimalista */}
-        <div className="grid md:grid-cols-3">
-          {/* Benefit 1 */}
-          <div className="p-12 text-center border-r border-gray-200">
-            <div className="text-base font-product-sans text-gray-500 mb-3 tracking-wide">ENVÍO GRATIS</div>
-            <div className="text-sm text-gray-600 mb-8 leading-relaxed max-w-xs mx-auto">
-              Entrega estándar en todos los pedidos superiores a $50
+        {/* Content */}
+        <div className="grid md:grid-cols-3 gap-px bg-gray-100">
+          {/* History */}
+          <div className="p-12 text-center bg-white">
+            <div className="text-xs text-gray-400 uppercase tracking-[0.2em] mb-6">Est. 1905</div>
+            <div className="text-sm text-gray-900 mb-2 leading-relaxed">
+              Stamford Bridge
             </div>
-            <button className="text-xs font-medium uppercase tracking-[0.15em] text-black hover:text-gray-600 transition-colors duration-200 border-b-2 border-black hover:border-gray-600 pb-1">
-              ÚNETE 
-            </button>
+            <div className="text-xs text-gray-500">
+              London
+            </div>
           </div>
 
-          {/* Benefit 2 */}
-          <div className="p-12 text-center border-r border-gray-200">
-            <div className="text-base font-semibold text-black mb-3 tracking-wide">PRECIO DE MIEMBRO</div>
-            <div className="text-sm text-gray-600 mb-8 leading-relaxed max-w-xs mx-auto">
-              Descuentos exclusivos y acceso anticipado a nuevos lanzamientos
+          {/* Achievements */}
+          <div className="p-12 text-center bg-white">
+            <div className="text-xs text-gray-400 uppercase tracking-[0.2em] mb-6">Honours</div>
+            <div className="text-sm text-gray-900 mb-2 leading-relaxed">
+              Champions League
             </div>
-            <button className="text-xs font-medium uppercase tracking-[0.15em] text-black hover:text-gray-600 transition-colors duration-200 border-b-2 border-black hover:border-gray-600 pb-1">
-              ONLY 100
-            </button>
+            <div className="text-xs text-gray-500">
+              2012 • 2021
+            </div>
           </div>
 
-          {/* Benefit 3 */}
-          <div className="p-12 text-center">
-            <div className="text-base font-semibold text-black mb-3 tracking-wide">ENTREGA EXPRESS</div>
-            <div className="text-sm text-gray-600 mb-8 leading-relaxed max-w-xs mx-auto">
-              Envío rápido disponible para pedidos urgentes
+          {/* Legacy */}
+          <div className="p-12 text-center bg-white">
+            <div className="text-xs text-gray-400 uppercase tracking-[0.2em] mb-6">Legacy</div>
+            <div className="text-sm text-gray-900 mb-2 leading-relaxed">
+              Premier League
             </div>
-            <button className="text-xs font-medium uppercase tracking-[0.15em] text-black hover:text-gray-600 transition-colors duration-200 border-b-2 border-black hover:border-gray-600 pb-1">
-              SELECCIÓN MÉXICO
-            </button>
+            <div className="text-xs text-gray-500">
+              6 Titles
+            </div>
           </div>
         </div>
 
-        {/* Footer minimalista */}
-        <div className="px-8 py-6 border-t border-gray-200 bg-gray-50">
-          <div className="text-center">
-            <div className="text-xs text-gray-500 mb-2">MEMBRESÍA SELECCIÓN MÉXICO</div>
-            <div className="text-sm font-medium text-black">Únete hoy y desbloquea beneficios exclusivos</div>
-          </div>
+        {/* Footer */}
+        <div className="px-8 py-6 text-center">
+          <div className="text-xs text-gray-400 uppercase tracking-[0.2em]">The Pride of London</div>
         </div>
       </div>
     </div>
@@ -629,9 +637,9 @@ const USPPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
 // Componente do carrossel do header com largura ajustada
 const HeaderCarousel = () => {
   const messages = [
-    "Vamos México",
-    "Exclusivo",
-    "Colección MVP"
+    "Let's go Chelsea",
+    "Exclusive",
+    "Champions Collection"
   ];
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -762,7 +770,7 @@ const CompleteHeader = ({ onUSPClick }: { onUSPClick: () => void }) => {
           <div data-testid="usp-header-item" className="w-full">
             <div className="flex items-center justify-center space-x-2 px-4" data-testid="usp-item">
               <div className="text-sm font-medium text-white uppercase tracking-wide">
-                SELECCIÓN MÉXICO
+                CHELSEA FC
               </div>
               <span title="" className="flex items-center transition-transform duration-200 group-hover:rotate-180" role="img">
                 <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -782,9 +790,9 @@ const CompleteHeader = ({ onUSPClick }: { onUSPClick: () => void }) => {
             <li><a href="#" className="text-gray-700 hover:text-gray-900 transition-colors duration-200">ayuda</a></li>
             <li><a href="#" className="text-gray-700 hover:text-gray-900 transition-colors duration-200">pedidos y devoluciones</a></li>
             <li><a href="#" className="text-gray-700 hover:text-gray-900 transition-colors duration-200">tarjetas de regalo</a></li>
-            <li><button className="text-gray-700 hover:text-gray-900 transition-colors duration-200">únete a la selección mexicana</button></li>
+            <li><button className="text-gray-700 hover:text-gray-900 transition-colors duration-200">join chelsea fc</button></li>
             <li>
-              <button aria-label="Cambiar ubicación de entrega o cambiar idioma" className="flex items-center text-gray-700 hover:text-gray-900 transition-colors duration-200">
+              <button aria-label="Change delivery location or change language" className="flex items-center text-gray-700 hover:text-gray-900 transition-colors duration-200">
                 <img alt="bandera mx" src="https://adl-foundation.adidas.com/flags/1-2-1/us.svg" className="w-4 h-3 mr-1" />
               </button>
             </li>
@@ -795,10 +803,7 @@ const CompleteHeader = ({ onUSPClick }: { onUSPClick: () => void }) => {
         <div className="flex items-center justify-between py-2 px-5" data-auto-id="header-bottom">
           {/* Logo */}
           <a href="#" aria-label="Homepage" className="flex items-center hover:opacity-80 transition-opacity duration-200" data-auto-id="logo">
-            <svg role="presentation" viewBox="100 100 50 32" xmlns="http://www.w3.org/2000/svg" className="w-12 h-8">
-              <title>Homepage</title>
-              <path fillRule="evenodd" clipRule="evenodd" d="M 150.07 131.439 L 131.925 100 L 122.206 105.606 L 137.112 131.439 L 150.07 131.439 Z M 132.781 131.439 L 120.797 110.692 L 111.078 116.298 L 119.823 131.439 L 132.781 131.439 Z M 109.718 121.401 L 115.509 131.439 L 102.551 131.439 L 100 127.007 L 109.718 121.401 Z" fill="black"></path>
-            </svg>
+            <img src="/Main_Website_Badge_-_Colour.webp" alt="Mexico Flag" className="w-10 h-10" />
           </a>
 
           {/* Carrossel de mensagens */}
@@ -807,15 +812,7 @@ const CompleteHeader = ({ onUSPClick }: { onUSPClick: () => void }) => {
           </div>
 
           {/* Ícones à direita */}
-          <div className="flex items-center space-x-6"> 
-              <Image
-                src="https://upload.wikimedia.org/wikipedia/commons/f/fc/Flag_of_Mexico.svg"
-                alt="Mexico Flag"
-                width={32}
-                height={32}
-                className="rounded-full object-cover border border-gray-200"
-              />
-            </div>
+          
 
             {/* Heart Icon */}
             <HeartIcon
@@ -838,22 +835,53 @@ export default function PSGQuiz() {
   const [correctAnswers, setCorrectAnswers] = useState(0)
   const [quizCompleted, setQuizCompleted] = useState(false)
   const [showNotification, setShowNotification] = useState(false)
-  const [audioInitialized, setAudioInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showUSPPanel, setShowUSPPanel] = useState(false)
   const isPixelsReady = usePixelLoader()
-  const playNotificationSound = useAudioSystem()
+  const { playSound, isInitialized: audioInitialized } = useAudioSystem();
+  const [progressValue, setProgressValue] = useState(100);
+  const progressTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Adicionar estilo da animação
+  // Remover o useEffect que adiciona os estilos
   useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = progressBarStyles
-    document.head.appendChild(style)
-    return () => {
-      document.head.removeChild(style)
+    if (progressTimer.current) {
+      clearInterval(progressTimer.current);
     }
-  }, [])
+
+    if (gameStarted && !quizCompleted) {
+      progressTimer.current = setInterval(() => {
+        setProgressValue(prev => {
+          const newValue = prev - 1;
+          if (newValue <= 0) {
+            if (progressTimer.current) {
+              clearInterval(progressTimer.current);
+            }
+            // Avança automaticamente para a próxima pergunta quando o tempo acabar
+            handleAnswer();
+            return 100;
+          }
+          return newValue;
+        });
+      }, 100); // 10 segundos total (100 * 100ms = 10000ms)
+    }
+
+    return () => {
+      if (progressTimer.current) {
+        clearInterval(progressTimer.current);
+      }
+    };
+  }, [gameStarted, currentQuestion, quizCompleted]);
+
+  // Reset progress quando mudar de pergunta
+  useEffect(() => {
+    setProgressValue(100);
+    
+    // Rastrear visualização da pergunta quando gameStarted está true
+    if (gameStarted && !quizCompleted) {
+      trackQuizStep('question_viewed', currentQuestion + 1);
+    }
+  }, [currentQuestion, gameStarted, quizCompleted]);
 
   // Debug para verificar o estado
   useEffect(() => {
@@ -878,7 +906,7 @@ export default function PSGQuiz() {
   // Modificar a função de início do quiz com loading
   const handleStartQuiz = () => {
     setIsLoading(true)
-    trackPixelEvent('Quiz_Start');
+    trackQuizStep('quiz_start'); // Rastrear início do quiz
     
     // Simular um pequeno delay para melhor UX
     setTimeout(() => {
@@ -890,59 +918,10 @@ export default function PSGQuiz() {
   // Função para lidar com o clique no botão de compra
   const handleBuyNowClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    trackPixelEvent('Going_to_Store');
-    const newWindow = window.open("https://store.promoseleccion.shop/", "_blank");
+    trackQuizStep('go_to_store'); // Evento final - ir para a loja
+    const newWindow = window.open("https://www.chelseastorefc.shop/", "_blank");
     if (newWindow) newWindow.opener = null;
   }
-
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-
-  // Initialize audio system
-  useEffect(() => {
-    const initializeAudio = () => {
-      try {
-        // Create audio element
-        const audio = new Audio(
-          "https://cdn.shopify.com/s/files/1/0946/2290/8699/files/notifica_o-venda.mp3?v=1749150271",
-        )
-        audio.preload = "auto"
-        audio.volume = 1
-        audioRef.current = audio
-
-        // Try to initialize audio context for mobile
-        const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext
-        if (AudioContext) {
-          const audioContext = new AudioContext()
-          if (audioContext.state === "suspended") {
-            audioContext.resume()
-          }
-        }
-
-        setAudioInitialized(true)
-        console.log("Audio system initialized successfully")
-      } catch (error) {
-        console.log("Error initializing audio:", error)
-      }
-    }
-
-    // Initialize on first user interaction
-    const handleFirstInteraction = () => {
-      initializeAudio()
-      document.removeEventListener("touchstart", handleFirstInteraction)
-      document.removeEventListener("click", handleFirstInteraction)
-      document.removeEventListener("keydown", handleFirstInteraction)
-    }
-
-    document.addEventListener("touchstart", handleFirstInteraction, { passive: true })
-    document.addEventListener("click", handleFirstInteraction)
-    document.addEventListener("keydown", handleFirstInteraction)
-
-    return () => {
-      document.removeEventListener("touchstart", handleFirstInteraction)
-      document.removeEventListener("click", handleFirstInteraction)
-      document.removeEventListener("keydown", handleFirstInteraction)
-    }
-  }, [])
 
   // Modificar a função de resposta com loading
   const handleAnswer = () => {
@@ -952,14 +931,19 @@ export default function PSGQuiz() {
     const isCorrect = Number.parseInt(selectedAnswer) === questions[currentQuestion].correct
     const questionNumber = currentQuestion + 1
 
-    // Sempre mostrar a notificação, independente da resposta estar correta
-    setShowNotification(true)
-    if (isCorrect) {
-      trackPixelEvent(`Quiz_Correct_Answer_${questionNumber}`)
-    } else {
-      trackPixelEvent(`Quiz_Wrong_Answer_${questionNumber}`)
-    }
-    playNotificationSound()
+    // Sempre incrementar o contador, independente da resposta estar correta
+    setCorrectAnswers(prev => {
+      const newValue = prev + 1;
+      console.log('Desconto atualizado:', newValue);
+      return newValue;
+    });
+
+    // Tracking de eventos - rastrear cada pergunta
+    trackQuizStep('question_answered', questionNumber, isCorrect);
+    
+    // Sempre mostrar a notificação
+    setShowNotification(true);
+    playSound();
 
     // Avançar diretamente para a próxima pergunta ou finalizar o quiz
     setTimeout(() => {
@@ -968,7 +952,7 @@ export default function PSGQuiz() {
         setSelectedAnswer("")
       } else {
         setQuizCompleted(true)
-        trackPixelEvent('Quiz_Completed')
+        trackQuizStep('quiz_completed'); // Rastrear conclusão do quiz
       }
       setIsSubmitting(false)
     }, 600)
@@ -984,14 +968,14 @@ export default function PSGQuiz() {
         setSelectedAnswer("")
       } else {
         setQuizCompleted(true)
-        trackPixelEvent('Quiz_Completed');
+        trackQuizStep('quiz_completed'); // Rastrear conclusão do quiz
       }
       setIsLoading(false)
     }, 400)
   }
 
   const handleRestart = () => {
-    trackPixelEvent('Quiz_Restart');
+    trackQuizStep('quiz_restart'); // Rastrear reinício do quiz
     setGameStarted(false);
     setCurrentQuestion(0);
     setSelectedAnswer("");
@@ -1006,6 +990,13 @@ export default function PSGQuiz() {
 
   useTrackVSLView();
 
+  // Rastrear visualização da página final
+  useEffect(() => {
+    if (quizCompleted) {
+      trackQuizStep('final_page_viewed');
+    }
+  }, [quizCompleted]);
+
   // Initial screen with the president
   if (!gameStarted) {
     return (
@@ -1017,7 +1008,7 @@ export default function PSGQuiz() {
           <div className="flex-grow">
             <div className="container mx-auto px-4 py-8">
               <div className="text-center mb-10 animate-fadeIn">
-                <h1 className="text-4xl font-normal font-product-sans text-gray-900">Mensaje de la Directiva</h1>
+                <h1 className="text-4xl font-normal font-product-sans text-gray-900">Message from Chelsea FC</h1>
               </div>
               
               <div className="space-y-8">
@@ -1029,17 +1020,11 @@ export default function PSGQuiz() {
 
                 <div className="bg-black/70 p-5 rounded-xl border shadow-sm animate-slideIn">
                   <blockquote className="text-sm md:text-lg text-white italic text-center leading-relaxed">
-                    "Contesta las 4 preguntas para demostrar que eres un verdadero fan del equipo y gana una playera autografiada con 70% de descuento"
+                    "Answer the 4 questions and get up to £100 off the signed jersey!"
                   </blockquote>
                 </div>
 
-                <div className="bg-black/90 p-6 rounded-xl border shadow-sm animate-slideIn">
-                  <div className="flex items-center justify-center space-x-3 text-black">
-                    <Star className="h-6 w-6 animate-pulse text-orange-500" />
-                    <span className="font-semibold text-white">¡70% de descuento garantizado!</span>
-                    <Star className="h-6 w-6 animate-pulse text-orange-500" />
-                  </div>
-                </div>
+
 
                 <Button
                   onClick={handleStartQuiz}
@@ -1050,12 +1035,12 @@ export default function PSGQuiz() {
                   {isLoading ? (
                     <>
                       <LoadingSpinner size="md" />
-                      Iniciando Cuestionario...
+                      Starting Quiz...
                     </>
                   ) : (
                     <>
                       <Trophy className="h-6 w-6" />
-                      Iniciar Cuestionario
+                      Start Quiz
                     </>
                   )}
                 </Button>
@@ -1083,12 +1068,12 @@ export default function PSGQuiz() {
 
               <div className="flex flex-col gap-4">
                 <Button
-                  className="bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white w-full py-6 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  className="bg-blue-800 hover:bg-blue-900 text-white w-full py-6 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   size="lg"
                   onClick={handleBuyNowClick}
                 >
                   <DollarSign className="mr-2 h-5 w-5" />
-                  Comprar Ahora - ${(150 * 0.3).toFixed(2)}
+                  Buy Now
                 </Button>
                 <Button 
                   variant="outline" 
@@ -1096,7 +1081,7 @@ export default function PSGQuiz() {
                   className="w-full border-2 hover:bg-gray-50 transition-all duration-200 py-6" 
                   onClick={handleRestart}
                 >
-                  🔄 Intentar de Nuevo
+                  🔄 Try Again
                 </Button>
               </div>
             </div>
@@ -1122,29 +1107,38 @@ export default function PSGQuiz() {
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-lg overflow-hidden ring-2 ring-blue-200">
                     <Image
-                      src="images/jersey.avif"
-                      alt="Jersey Oficial"
+                      src="images/chelsea-shirt.jpg"
+                      alt="Chelsea Official Jersey"
                       width={40}
                       height={40}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Cuestionario del Aficionado</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Chelsea Fan Quiz</h2>
                     <p className="text-gray-600">
-                      Pregunta {currentQuestion + 1} de {questions.length}
+                      Question {currentQuestion + 1} of {questions.length}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Tu descuento</p>
-                  <p className="text-2xl font-bold text-green-600 animate-pulse">70%</p>
+                  <p className="text-sm text-gray-600">Your discount</p>
+                  <p className={`mr-10 text-2xl font-bold text-green-600 transform transition-all duration-500 ${
+                    correctAnswers > 0 ? 'scale-125 animate-pulse' : ''
+                  }`}>
+                    £{correctAnswers * 25}
+                  </p>
+                  <p className="text-xs text-gray-500">Participation reward</p>
                 </div>
               </div>
-              <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-green-500 rounded-full transition-all duration-500" 
-                     style={{ width: `${(currentQuestion / questions.length) * 100}%` }}></div>
-              </div>
+              {gameStarted && !quizCompleted && (
+                <div className="progress-container">
+                  <div
+                    className="progress-bar"
+                    style={{ width: `${progressValue}%` }}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-8">
@@ -1184,10 +1178,10 @@ export default function PSGQuiz() {
                   {isSubmitting ? (
                     <div className="flex items-center gap-2">
                       <LoadingSpinner size="sm" />
-                      Procesando...
+                      Processing...
                     </div>
                   ) : (
-                    "Confirmar Respuesta"
+                    "Confirm Answer"
                   )}
                 </Button>
               </div>

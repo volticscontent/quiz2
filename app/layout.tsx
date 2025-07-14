@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
+  title: 'Chelsea Promotional Selection',
   description: 'Created with v0',
   generator: 'v0.dev',
 }
@@ -15,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        {/* Facebook Pixel */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -26,7 +27,7 @@ export default function RootLayout({
               t.src=v;s=b.getElementsByTagName(e)[0];
               s.parentNode.insertBefore(t,s)}(window, document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '1769045330671882');
+              fbq('init', '701445339386879');
               fbq('track', 'PageView');
             `,
           }}
@@ -36,9 +37,32 @@ export default function RootLayout({
             height="1"
             width="1"
             style={{ display: 'none' }}
-            src="https://www.facebook.com/tr?id=1769045330671882&ev=PageView&noscript=1"
+            src="https://www.facebook.com/tr?id=701445339386879&ev=PageView&noscript=1"
           />
         </noscript>
+        
+        {/* UTMify Pixel */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.pixelId = "6874f3df2c1135055ce7357c";
+              var a = document.createElement("script");
+              a.setAttribute("async", "");
+              a.setAttribute("defer", "");
+              a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+              document.head.appendChild(a);
+            `,
+          }}
+        />
+        
+        {/* UTMify UTM Script */}
+        <script
+          src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+          data-utmify-prevent-xcod-sck
+          data-utmify-prevent-subids
+          async
+          defer
+        />
       </head>
       <body>
         {children}
