@@ -5,15 +5,63 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const META_API_TOKEN = "EAAJ92ZCmLbAsBPD92ZClbHES4zhHc5O2atUecsIDHnX74i11ZBlYZCoWlVZAykYJYcyZBxRaOmixt3jSWGZB58WRMWtqJMV96herHZCdIvGtS9ZAkk6sZCSawlwjYtYhPgfKRS5Aou7JoXZBCOc9q2E7H3qrFTtKFYpQXFEHI1MHs6EZAzuAD12Lt2U7qh8X1MrydbIM8QZDZD"
-
-export const PIXEL_ID = "701445339386879"
-
-export const TIKTOK_ACCESS_TOKEN = "f0172edcadd145877ca2267d6edc0169981c7913"
-export const TIKTOK_PIXEL_ID = "D1QOBFJC77U41SK2P3PG"
+// Configurações dos pixels usando variáveis de ambiente
+export const PIXEL_ID = process.env.FACEBOOK_PIXEL_ID || "701445339386879"
+export const TIKTOK_ACCESS_TOKEN = process.env.TIKTOK_ACCESS_TOKEN || "c2e51e03eefa47186ba1a9b52ee1bba4cb037872"
+export const TIKTOK_PIXEL_ID_1 = process.env.TIKTOK_PIXEL_ID_1 || "D1QOBFJC77U41SK2P3PG"
+export const TIKTOK_PIXEL_ID_2 = process.env.TIKTOK_PIXEL_ID_2 || "D1RMNC3C77U41FGAQFSG"
 
 // Controle global de eventos já disparados
 const trackedEvents = new Set<string>()
+
+// Função para enviar eventos via API do TikTok
+async function sendTikTokApiEvent(eventName: string, parameters?: Record<string, any>, pixelId?: string) {
+  try {
+    const payload = {
+      pixel_code: pixelId || TIKTOK_PIXEL_ID_1,
+      event: eventName,
+      event_id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Math.floor(Date.now() / 1000).toString(),
+      context: {
+        page: {
+          url: typeof window !== 'undefined' ? window.location.href : '',
+          referrer: typeof window !== 'undefined' ? document.referrer : ''
+        },
+        user: {
+          external_id: '', // Pode ser preenchido com ID do usuário se disponível
+          phone_number: '', // Pode ser preenchido se disponível
+          email: '' // Pode ser preenchido se disponível
+        },
+        ad: {
+          callback: ''
+        }
+      },
+      properties: parameters || {}
+    }
+
+    const response = await fetch('https://business-api.tiktok.com/open_api/v1.3/event/track/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Token': TIKTOK_ACCESS_TOKEN
+      },
+      body: JSON.stringify({
+        events: [payload]
+      })
+    })
+
+    if (response.ok) {
+      const result = await response.json()
+      console.log(`[TikTok API ${pixelId}] Event sent successfully:`, eventName, result)
+      return result
+    } else {
+      const error = await response.text()
+      console.error(`[TikTok API ${pixelId}] Error sending event:`, error)
+    }
+  } catch (error) {
+    console.error(`[TikTok API ${pixelId}] Network error:`, error)
+  }
+}
 
 export function trackEvent(eventName: string, parameters?: Record<string, any>, allowDuplicates: boolean = true) {
   // Se o evento já foi disparado e não permite duplicatas, não dispara novamente
@@ -33,13 +81,13 @@ export function trackEvent(eventName: string, parameters?: Record<string, any>, 
       }
     }
 
-    // TikTok Pixel
+    // TikTok Pixel 1
     if ((window as any).ttq) {
       try {
         (window as any).ttq.track(eventName, parameters)
-        console.log(`[TikTok Pixel ${TIKTOK_PIXEL_ID}] Tracked event:`, eventName, parameters)
+        console.log(`[TikTok Pixel ${TIKTOK_PIXEL_ID_1}] Tracked event:`, eventName, parameters)
       } catch (error) {
-        console.error('[TikTok Pixel] Error tracking event:', error)
+        console.error('[TikTok Pixel 1] Error tracking event:', error)
       }
     }
 
@@ -51,6 +99,15 @@ export function trackEvent(eventName: string, parameters?: Record<string, any>, 
       } catch (error) {
         console.error('[UTMify Pixel] Error tracking event:', error)
       }
+    }
+
+    // Envio via API do TikTok para ambos os pixels
+    if (TIKTOK_ACCESS_TOKEN && TIKTOK_ACCESS_TOKEN !== 'your_tiktok_token_here') {
+      // Enviar para o primeiro pixel
+      sendTikTokApiEvent(eventName, parameters, TIKTOK_PIXEL_ID_1)
+      
+      // Enviar para o segundo pixel também
+      sendTikTokApiEvent(eventName, parameters, TIKTOK_PIXEL_ID_2)
     }
 
     // Marca o evento como disparado
@@ -76,7 +133,8 @@ export function trackQuizStep(step: string, questionNumber?: number, isCorrect?:
   
   // Log detalhado para debug
   console.log(`[Quiz Step Tracking] ${stepKey}:`, parameters)
-  console.log(`[Pixels] Meta: ${PIXEL_ID}, TikTok: ${TIKTOK_PIXEL_ID}`)
+  console.log(`[Pixels] Meta: ${PIXEL_ID}, TikTok 1: ${TIKTOK_PIXEL_ID_1}, TikTok 2: ${TIKTOK_PIXEL_ID_2}`)
+  console.log(`[TikTok API] Token: ${TIKTOK_ACCESS_TOKEN ? 'Configured' : 'Not configured'}`)
   
   trackEvent(stepKey, parameters, false) // Não permite duplicatas por padrão
 }
